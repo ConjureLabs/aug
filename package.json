@@ -1,0 +1,55 @@
+{
+  "name": "aug",
+  "version": "0.0.1-alpha1",
+  "description": "",
+  "repository": "ConjureLabs/aug",
+  "main": "index.js",
+  "scripts": {
+    "dev": "webpack -w",
+    "link": "npm run build && cd link && npm link",
+    "pack": "rm -rf pkg && npm run build && pkg dist/aug.js -c package.json -o packed/aug --options no-warnings",
+    "build": "webpack"
+  },
+  "license": "MIT",
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "targets": {
+            "node": "current"
+          }
+        }
+      ]
+    ]
+  },
+  "pkg": {
+    "scripts": [
+      "dist/*.js"
+    ],
+    "targets": [
+      "node8-alpine-x64",
+      "node8-linux-x64",
+      "node8-macos-x64",
+      "node8-win-x64"
+    ]
+  },
+  "dependencies": {
+    "@babel/core": "^7.0.1",
+    "@babel/plugin-transform-runtime": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "@babel/runtime": "^7.0.0",
+    "babel-eslint": "^9.0.0",
+    "babel-loader": "^8.0.2",
+    "chalk": "^2.4.1",
+    "copy-webpack-plugin": "^4.5.2",
+    "epipebomb": "^1.0.0",
+    "mkdirp": "^0.5.1",
+    "pkg": "^4.3.4",
+    "webpack": "^4.19.0",
+    "webpack-node-externals": "^1.7.2"
+  },
+  "devDependencies": {
+    "webpack-cli": "^3.1.0"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "aug",
+  "license": "MIT",
+  "repository": "ConjureLabs/aug",
+  "bin": {
+    "aug": "link.js"
+  }
+}

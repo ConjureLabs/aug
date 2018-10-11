@@ -1,3 +1,3 @@
-# Augment
+# aug
 
-Augment takes an existing repo, and allows you to add or override files.
+`aug` augments a project. It layers files from one directory onto another.
