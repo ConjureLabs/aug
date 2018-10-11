@@ -1,6 +1,6 @@
 // --help/-h is ignored since this handler defaults to helper text
 module.exports.handler = userConfig => {
-  console.log(userConfig)
+  console.log('in handler')
 }
 
 module.exports.flagShorthands = {
@@ -15,7 +15,7 @@ module.exports.flagHasValue = {
   dest: true
 }
 
-module.exports.requiredFlags = {
+module.exports.flagRequired = {
   base: true,
   apply: true,
   dest: true

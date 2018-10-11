@@ -61,7 +61,7 @@ function aug() {
     commandHandler = commandResource.handler
     commandFlagShorthands = commandResource.flagShorthands || {}
     commandFlagHasValue = commandResource.flagHasValue || {}
-    commandRequiredFlags = commandResource.commandRequiredFlags || {}
+    commandFlagRequired = commandResource.flagRequired || {}
   } catch(err) {
     // if firing directly (node ./src/aug.js), then allow err on stdout
     if (srcExecution) {
@@ -80,18 +80,18 @@ function aug() {
 
   userConfig.flags = mapFlags(userConfig.flags, commandFlagShorthands)
 
-  for (let key in commandFlagHasValue) {
-    if (userConfig.flagArgs[key] === undefined) {
-      const flagUsed = userConfig.flags[key]
-      return helpers.fatal(`${helpers.bold('--' + flagUsed)} requires a value (e.g. --${flagUsed}=somevalue)`)
+  for (let key in commandFlagRequired) {
+    if (userConfig.flags[key] == undefined) {
+      const flagUsed = userConfig.flags[key] || key
+      const commandExample = commandFlagHasValue[key] ? `--${flagUsed}=somevalue` : `--${flagUsed}`
+      return helpers.fatal(`${helpers.bold(commandExample)} is required`)
     }
   }
 
-  for (let key in commandRequiredFlags) {
-    if (userConfig.flags[key] === undefined) {
-      const flagUsed = userConfig.flags[key]
-      const commandExample = commandFlagHasValue[key] ? `--${flagUsed}=somevalue` : `--${flagUsed}`
-      return helpers.fatal(`${helpers.bold(commandExample)} is required`)
+  for (let key in commandFlagHasValue) {
+    if (userConfig.flags[key] != undefined && userConfig.flagArgs[key] == undefined) {
+      const flagUsed = userConfig.flags[key] || key
+      return helpers.fatal(`${helpers.bold('--' + flagUsed)} requires a value (e.g. --${flagUsed}=somevalue)`)
     }
   }
 
