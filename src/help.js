@@ -5,13 +5,13 @@ module.exports.handler = userConfig => {
     text: require('../package.json').version
   }] : [{
     title: 'Usage',
-    text: 'aug --base <base-dir> --apply <apply-dir> --dest <dest-dir>'
+    text: 'aug --base=<base-dir> --apply=<apply-dir> --dest=<dest-dir>'
   }, {
     title: 'Options',
     list: [
-      ['--base, -b <base-dir>', 'Base project directory being augmented'],
-      ['--apply, -a <apply-dir>', 'Directory that will augment the base project'],
-      ['--dest, -d <dest-dir>', 'Path to where augmented version of project should copy to'],
+      ['--base, -b =<base-dir>', 'Base project directory being augmented'],
+      ['--apply, -a =<apply-dir>', 'Directory that will augment the base project'],
+      ['--dest, -d =<dest-dir>', 'Path to where augmented version of project should copy to'],
       ['--help, -h', 'List commands and options'],
       ['--version, -v', 'Display installed version']
     ]

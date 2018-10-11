@@ -3,7 +3,7 @@ const helpers = require('./aug.helpers')
 // wrapping base code in a func so it can `return`
 // without webpack complaining
 function aug() {
-  const argv = process.argv
+  let argv = process.argv
   let srcExecution = false
   if (/\/node$/.test(argv[0])) {
     srcExecution = true
@@ -11,10 +11,20 @@ function aug() {
   }
   argv.shift() // "aug" or "aug.js"
 
+  // argv = argv.length === 0 ? ['help'] : argv
+
   const startingDash = /^--?/
+  const flagValue = /^(\w[\w-]*)=(\S+)$/
   const userConfig = argv.reduce((userConfig, token) => {
     if (startingDash.test(token)) {
-      userConfig.flags[ token.replace(startingDash, '') ] = token
+      const tokenStripped = token.replace(startingDash, '')
+      const valueMatch = flagValue.exec(tokenStripped)
+      if (!valueMatch) {
+        userConfig.flags[tokenStripped] = tokenStripped
+      } else {
+        userConfig.flags[ valueMatch[1] ] = token
+        userConfig.flagArgs[ valueMatch[1] ] = valueMatch[2]
+      }
       return userConfig
     }
 
@@ -31,20 +41,27 @@ function aug() {
       // non-flag args after comand
     ],
     flags: {
-      // 'version': '--version'
+      // 'dest': 'd' // if used '-d'
+    },
+    flagArgs: {
+      // 'dest': '../some-dir'
     }
   })
 
   // "aug" or "aug --help" will output base helper text
-  const commandRaw = userConfig.command === null ? 'help' : userConfig.command
+  const commandRaw = userConfig.command === null && !userConfig.flags.help ? 'apply' : userConfig.command
   // sanitizing user command to avoid requiring in files like config.default.json
   const commandUsed = commandRaw.replace(/[^a-z]*/i, '').toLowerCase()
   let commandHandler
   let commandFlagShorthands
+  let commandFlagHasValue
+  let commandRequiredFlags
   try {
     commandResource = require(`./${commandUsed}`)
     commandHandler = commandResource.handler
-    commandFlagShorthands = commandResource.flagShorthands
+    commandFlagShorthands = commandResource.flagShorthands || {}
+    commandFlagHasValue = commandResource.flagHasValue || {}
+    commandRequiredFlags = commandResource.commandRequiredFlags || {}
   } catch(err) {
     // if firing directly (node ./src/aug.js), then allow err on stdout
     if (srcExecution) {
@@ -61,8 +78,21 @@ function aug() {
     return helpers.fatal(`${helpers.bold(commandRaw)} cannot be executed (no handler defined) - This is likely an issue with the CLI itself - please file a bug at https://github.com/ConjureLabs/conjure-cli/issues`)
   }
 
-  if (commandFlagShorthands) {
-    userConfig.flags = mapFlags(userConfig.flags, commandFlagShorthands)
+  userConfig.flags = mapFlags(userConfig.flags, commandFlagShorthands)
+
+  for (let key in commandFlagHasValue) {
+    if (userConfig.flagArgs[key] === undefined) {
+      const flagUsed = userConfig.flags[key]
+      return helpers.fatal(`${helpers.bold('--' + flagUsed)} requires a value (e.g. --${flagUsed}=somevalue)`)
+    }
+  }
+
+  for (let key in commandRequiredFlags) {
+    if (userConfig.flags[key] === undefined) {
+      const flagUsed = userConfig.flags[key]
+      const commandExample = commandFlagHasValue[key] ? `--${flagUsed}=somevalue` : `--${flagUsed}`
+      return helpers.fatal(`${helpers.bold(commandExample)} is required`)
+    }
   }
 
   commandHandler(userConfig)
