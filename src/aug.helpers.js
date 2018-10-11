@@ -6,7 +6,8 @@ module.exports = {}
 
 // 1 = fatal error
 module.exports.fatal = message => {
-  console.log(`\n${padLeft}${chalk.red(message)}\n`)
+  message = message.replace(/^|\n|\r+/g, `\n${padLeft}`)
+  console.log(`${chalk.red(message)}\n`)
   process.exit(1)
 }
 

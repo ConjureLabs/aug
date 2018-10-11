@@ -80,19 +80,25 @@ function aug() {
 
   userConfig.flags = mapFlags(userConfig.flags, commandFlagShorthands)
 
+  const fatalErrors = []
+
   for (let key in commandFlagRequired) {
     if (userConfig.flags[key] == undefined) {
       const flagUsed = userConfig.flags[key] || key
       const commandExample = commandFlagHasValue[key] ? `--${flagUsed}=somevalue` : `--${flagUsed}`
-      return helpers.fatal(`${helpers.bold(commandExample)} is required`)
+      fatalErrors.push(`${helpers.bold(commandExample)} is required`)
     }
   }
 
   for (let key in commandFlagHasValue) {
     if (userConfig.flags[key] != undefined && userConfig.flagArgs[key] == undefined) {
       const flagUsed = userConfig.flags[key] || key
-      return helpers.fatal(`${helpers.bold('--' + flagUsed)} requires a value (e.g. --${flagUsed}=somevalue)`)
+      fatalErrors.push(`${helpers.bold('--' + flagUsed)} requires a value (e.g. --${flagUsed}=somevalue)`)
     }
+  }
+
+  if (fatalErrors.length) {
+    return helpers.fatal(fatalErrors.join('\n'))
   }
 
   commandHandler(userConfig)
