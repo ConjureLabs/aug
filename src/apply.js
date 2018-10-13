@@ -2,6 +2,8 @@ const fs = require('fs')
 const path = require('path')
 const ignore = require('ignore')
 
+const helpers = require('./aug.helpers')
+
 let dryRun = false
 
 // --help/-h is ignored since this handler defaults to helper text
@@ -83,7 +85,8 @@ async function walk(src, apply) {
     
     const resourceProps = {
       stats,
-      path: path.resolve(specificOrigin.path, resource)
+      path: path.resolve(specificOrigin.path, resource),
+      origin: originUsed
     }
 
     // if a non-directory,
@@ -118,6 +121,14 @@ async function walk(src, apply) {
   return result
 }
 
+const logPrefixes = helpers.equalWidths(['src', 'apply']).reduce((lookup, string) => {
+  const trimmed = string.trim()
+  string = trimmed === 'src' ? helpers.green(string) : helpers.blue(string)
+  string = helpers.bold(string)
+  lookup[trimmed] = string
+  return lookup
+}, {})
+
 async function generateDest(tree, dest) {
   for (const resource in tree) {
     const node = tree[resource]
@@ -125,6 +136,11 @@ async function generateDest(tree, dest) {
 
     if (!(node instanceof TerminalResource)) {
       generateDest(node, destPath)
+      continue
+    }
+
+    console.log(`${logPrefixes[node.origin]} --> ${destPath}`)
+    if (dryRun) {
       continue
     }
 
@@ -209,19 +225,7 @@ function readFile(path) {
   })
 }
 
-function emptyPromise() {
-  return new Promise(resolve => {
-    resolve()
-  })
-}
-
 function copy(originPath, destPath) {
-  console.log(`--> ${destPath}`)
-
-  if (dryRun) {
-    return emptyPromise()
-  }
-
   return new Promise((resolve, reject) => {
     fs.copyFile(originPath, destPath, fs.constants.COPYFILE_EXCL, err => {
       if (err) {
@@ -233,12 +237,6 @@ function copy(originPath, destPath) {
 }
 
 function symlink(originPath, destPath) {
-  console.log(`--> ${destPath}`)
-
-  if (dryRun) {
-    return emptyPromise()
-  }
-
   return new Promise((resolve, reject) => {
     fs.symlink(originPath, destPath, err => {
       if (err) {

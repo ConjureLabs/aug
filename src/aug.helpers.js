@@ -21,6 +21,14 @@ module.exports.underline = text => {
   return chalk.underline(text)
 }
 
+module.exports.blue = text => {
+  return chalk.blue(text)
+}
+
+module.exports.green = text => {
+  return chalk.green(text)
+}
+
 // takes in structured helper output, and returns console.log ready text
 /*
   // `output` is an array of structured & sectioned text.
@@ -80,7 +88,7 @@ module.exports.helpOutput = output => {
 // where all values have been padded
 // to equal the longest's,
 // plus extra amount as specified
-function equalWidths(strings, extraPadding = 0) {
+module.exports.equalWidths = function equalWidths(strings, extraPadding = 0) {
   const longestLen = strings.reduce((longestLen, str) => {
     if (str.length > longestLen) {
       return str.length
