@@ -13,7 +13,7 @@ function aug() {
 
   // argv = argv.length === 0 ? ['help'] : argv
 
-  const startingDash = /^--?/
+  const startingDash = /^-{1,2}/
   const flagValue = /^(\w[\w-]*)=(\S+)$/
   const userConfig = argv.reduce((userConfig, token) => {
     if (startingDash.test(token)) {
@@ -23,7 +23,7 @@ function aug() {
         userConfig.flags[tokenStripped] = tokenStripped
       } else {
         userConfig.flags[ valueMatch[1] ] = token
-        userConfig.flagArgs[ valueMatch[1] ] = valueMatch[2]
+        userConfig.flagValues[ valueMatch[1] ] = valueMatch[2]
       }
       return userConfig
     }
@@ -43,7 +43,7 @@ function aug() {
     flags: {
       // 'dest': 'd' // if used '-d'
     },
-    flagArgs: {
+    flagValues: {
       // 'dest': '../some-dir'
     }
   })
@@ -79,6 +79,7 @@ function aug() {
   }
 
   userConfig.flags = mapFlags(userConfig.flags, commandFlagShorthands)
+  userConfig.flagValues = mapFlagValues(userConfig.flagValues, commandFlagShorthands)
 
   const fatalErrors = []
 
@@ -91,7 +92,7 @@ function aug() {
   }
 
   for (let key in commandFlagHasValue) {
-    if (userConfig.flags[key] != undefined && userConfig.flagArgs[key] == undefined) {
+    if (userConfig.flags[key] != undefined && userConfig.flagValues[key] == undefined) {
       const flagUsed = userConfig.flags[key] || key
       fatalErrors.push(`${helpers.bold('--' + flagUsed)} requires a value (e.g. --${flagUsed}=somevalue)`)
     }
@@ -112,6 +113,18 @@ function aug() {
 function mapFlags(flags, shorthands) {
   return Object.keys(flags).reduce((mapped, key) => {
     mapped[ shorthands[key] || key ] = flags[key]
+    return mapped
+  }, {})
+}
+
+// takes in a command handler's flag values,
+// with shorthand pairings,
+// and returns an object with only the full string keys
+// e.g. { 'v': '12' } with shorthand pairings { 'v': 'version' } is { 'version', '12' }
+// this makes it easier to use the keys
+function mapFlagValues(flagValues, shorthands) {
+  return Object.keys(flagValues).reduce((mapped, key) => {
+    mapped[ shorthands[key] || key ] = flagValues[key]
     return mapped
   }, {})
 }
