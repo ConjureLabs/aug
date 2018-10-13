@@ -35,23 +35,22 @@
     ]
   },
   "dependencies": {
-    "@babel/core": "^7.0.1",
-    "@babel/plugin-transform-runtime": "^7.0.0",
-    "@babel/preset-env": "^7.0.0",
-    "@babel/runtime": "^7.0.0",
+    "@babel/core": "7.1.2",
+    "@babel/plugin-transform-runtime": "7.1.0",
+    "@babel/preset-env": "7.1.0",
+    "@babel/runtime": "7.1.2",
     "@conjurelabs/utils": "^0.1.0",
-    "babel-eslint": "^9.0.0",
-    "babel-loader": "^8.0.2",
-    "chalk": "^2.4.1",
-    "copy-webpack-plugin": "^4.5.2",
-    "epipebomb": "^1.0.0",
-    "ignore": "^5.0.2",
-    "mkdirp": "^0.5.1",
-    "pkg": "^4.3.4",
-    "webpack": "^4.19.0",
-    "webpack-node-externals": "^1.7.2"
+    "babel-eslint": "10.0.1",
+    "babel-loader": "8.0.4",
+    "chalk": "2.4.1",
+    "copy-webpack-plugin": "4.5.3",
+    "epipebomb": "1.0.0",
+    "ignore": "5.0.2",
+    "pkg": "4.3.4",
+    "webpack": "4.20.2",
+    "webpack-node-externals": "1.7.2"
   },
   "devDependencies": {
-    "webpack-cli": "^3.1.0"
+    "webpack-cli": "3.1.2"
   }
 }
