@@ -11,8 +11,6 @@ function aug() {
   }
   argv.shift() // "aug" or "aug.js"
 
-  // argv = argv.length === 0 ? ['help'] : argv
-
   const startingDash = /^-{1,2}/
   const flagValue = /^(\w[\w-]*)=(\S+)$/
   const userConfig = argv.reduce((userConfig, token) => {
