@@ -1,4 +1,4 @@
-const { readdir, stat } = require('fs')
+const fs = require('fs')
 const path = require('path')
 
 // --help/-h is ignored since this handler defaults to helper text
@@ -15,8 +15,8 @@ class Project {
 
   async augment() {
     this.tree = new Tree(this.src, this.apply)
-    await this.tree.walk()
-    // await this.buildTree()
+    await this.tree.build()
+    await generateDest(this.tree, this.dest)
   }
 }
 
@@ -33,18 +33,79 @@ class Tree {
     })
   }
 
-  async walk() {
-    const src = await dir(this.src)
-    const apply = await dir(this.apply)
+  async build() {
+    Object.assign(this, await walk(this.src, this.apply))
+    return this
+  }
+}
 
-    console.log(this)
+class TerminalResource {
+  constructor(props) {
+    this.props = props
+  }
+}
+
+const emptyDirState = Object.freeze({ list: Object.freeze([]), stats: Object.freeze({}), path: null })
+async function walk(src, apply) {
+  const origin = {
+    src: src ? await dir(src) : emptyDirState,
+    apply: apply ? await dir(apply) : emptyDirState
+  }
+
+  // full array of resource names
+  const list = origin.src.list.concat(origin.apply.list)
+
+  const result = {}
+
+  for (const resource of list) {
+    // attempt to use apply origin, else fallback to src
+    const originUsed = origin.apply.list.includes(resource) ? 'apply' : 'src'
+    const specificOrigin = origin[originUsed]
+    const stats = specificOrigin.stats[resource]
+
+    // determine if this is a terminal resource
+    // any non-directory is terminal
+    // any directory that _only_ exists in one origin is terminal
+    // ^ this will result in directories not being walked if not needed
+    
+    const resourceProps = {
+      stats,
+      path: path.resolve(specificOrigin.path, resource)
+    }
+
+    // if a non-directory,
+    // or from src dir,
+    // then it's terminal
+    if (originUsed === 'src' || !stat.isDirectory()) {
+      result[resource] = new TerminalResource(resourceProps)
+      continue
+    }
+
+    const srcStats = origin.src.stats[resource]
+    const srcHasResourceDir = srcStats && srcStats.isDirectory()
+
+    // if src does not have a diretory, then it's terminal
+    if (!srcHasResourceDir) {
+      result[resource] = new TerminalResource(resourceProps)
+      continue
+    }
+
+    // walk deeper
+    result[resource] = await walk(
+      srcHasResourceDir ? path.resolve(src, resource) : null,
+      path.resolve(apply, resource)
+    )
+
+    // if (specificOrigin.stats[resource].isSymbolicLink()) {
+    //   await copy(path.resolve(specificOrigin, resource), path.resolve())
+    // }
   }
 }
 
 function dir(path) {
   return new Promise((resolve, reject) => {
     // would like to use withFileTypes but it's not avail until node v10.10.0
-    readdir(path, {
+    fs.readdir(path, {
       encoding: 'utf8',
       withFileTypes: true
     }, async (err, list) => {
@@ -53,23 +114,39 @@ function dir(path) {
       }
 
       // get all file stats
-      // { resource: 'filename', stats: <fs.Stats> }
-      resolve(await Promise.all(list.map(resource => resourceStat(path, resource))))
+      // { 'config.yml': <fs.Stats> }
+      const eachResult = await Promise.all(list.map(resource => stat(path, resource)))
+      resolve({
+        path,
+        list,
+        // return flattened object
+        stats: Object.assign({}, ...eachResult)
+      })
     })
   })
 }
 
-function resourceStat(resourceDir, resource) {
+function stat(resourceDir, resource) {
   return new Promise((resolve, reject) => {
-    stat(path.resolve(resourceDir, resource), (err, stats) => {
+    fs.stat(path.resolve(resourceDir, resource), (err, stats) => {
       if (err) {
         return reject(err)
       }
 
       resolve({
-        resource,
-        stats
+        [resource]: stats
       })
+    })
+  })
+}
+
+function copy(originPath, destPath) {
+  return new Promise((resolve, reject) => {
+    fs.copyFile(originPath, destPath, fs.constants.COPYFILE_EXCL, err => {
+      if (err) {
+        return reject(err)
+      }
+      resolve()
     })
   })
 }
