@@ -1,3 +1,5 @@
+require('@conjurelabs/utils/process/handle-exceptions')
+
 const helpers = require('./aug.helpers')
 
 // wrapping base code in a func so it can `return`

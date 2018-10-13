@@ -40,7 +40,6 @@ class Tree {
 
   async build() {
     Object.assign(this, await walk(this.src, this.apply))
-    return this
   }
 }
 
