@@ -30,7 +30,7 @@ The 'apply' directory should only contain files you want to override with. For e
 
 ## .augignore
 
-You can add an `.augignore` file to either project, in any directory. This ignore file follows the same logic as a `.gitignore` file. You can specify files and folders that you do not want carried over in the merge process.
+You can add an `.augignore` file to either project, in any directory. It follows the same logic as a `.gitignore`. You can specify files and folders that you want skipped during the merge process.
 
 
 ```
