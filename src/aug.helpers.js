@@ -59,7 +59,7 @@ module.exports.helpOutput = output => {
       allOutputKeys.push(...output[i].list.map(subArray => module.exports.bold(subArray[0])))
     }
   }
-  const paddedKeys = equalWidths(allOutputKeys, 6)
+  const paddedKeys = module.exports.equalWidths(allOutputKeys, 6)
 
   const resultSectioned = output.reduce((result, section) => {
     const title = module.exports.bold(module.exports.underline(section.title) + ':')
@@ -88,7 +88,7 @@ module.exports.helpOutput = output => {
 // where all values have been padded
 // to equal the longest's,
 // plus extra amount as specified
-module.exports.equalWidths = function equalWidths(strings, extraPadding = 0) {
+module.exports.equalWidths = (strings, extraPadding = 0) => {
   const longestLen = strings.reduce((longestLen, str) => {
     if (str.length > longestLen) {
       return str.length

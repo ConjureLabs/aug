@@ -49,9 +49,11 @@ function aug() {
   })
 
   // "aug" or "aug --help" will output base helper text
-  const commandRaw = userConfig.command === null && !userConfig.flags.help ? 'apply' : userConfig.command
+  const commandRaw = userConfig.command
   // sanitizing user command to avoid requiring in files like config.default.json
-  const commandUsed = (commandRaw || 'help').replace(/[^a-z]*/i, '').toLowerCase()
+  const commandUsed = commandRaw !== null ? commandRaw.replace(/[^a-z]*/i, '').toLowerCase() :
+    userConfig.flags.help || userConfig.flags.h || objectIsEmpty(userConfig.flags) ? 'help' :
+    'apply'
   let commandHandler
   let commandFlagShorthands
   let commandFlagHasValue
@@ -127,6 +129,13 @@ function mapFlagValues(flagValues, shorthands) {
     mapped[ shorthands[key] || key ] = flagValues[key]
     return mapped
   }, {})
+}
+
+function objectIsEmpty(obj) {
+  for (let _ in obj) {
+    return false
+  }
+  return true
 }
 
 aug()
