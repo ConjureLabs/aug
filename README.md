@@ -16,8 +16,6 @@ Options:
   --version, -v                 Display installed version
 ```
 
-![](./images/example.png)
-
 ## Purpose
 
 Imagine you have a web app that you want to open source, but you want to offer a hosted version as well. The hosted version may have some differences, like a different landing page, onboarding, and billing. You probably want the open source version to be simple.
