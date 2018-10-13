@@ -14,9 +14,9 @@ class Project {
   }
 
   async augment() {
-    this.tree = new Tree(this.src, this.apply)
-    await this.tree.build()
-    await generateDest(this.tree, this.dest)
+    const tree = new Tree(this.src, this.apply)
+    await tree.build()
+    await generateDest(tree, this.dest)
   }
 }
 
@@ -95,10 +95,27 @@ async function walk(src, apply) {
       srcHasResourceDir ? path.resolve(src, resource) : null,
       path.resolve(apply, resource)
     )
+  }
 
-    // if (specificOrigin.stats[resource].isSymbolicLink()) {
-    //   await copy(path.resolve(specificOrigin, resource), path.resolve())
-    // }
+  return result
+}
+
+async function generateDest(tree, dest) {
+  for (const resource of tree) {
+    const node = tree[resource]
+    const destPath = path.resolve(dest, resource)
+
+    if (!node instanceof TerminalResource) {
+      generateDest(node, destPath)
+      continue
+    }
+
+    if (node.stats.isSymbolicLink()) {
+      await copy(node.path, destPath)
+      continue
+    }
+
+    symlink(node.path, destPath)
   }
 }
 
@@ -143,6 +160,17 @@ function stat(resourceDir, resource) {
 function copy(originPath, destPath) {
   return new Promise((resolve, reject) => {
     fs.copyFile(originPath, destPath, fs.constants.COPYFILE_EXCL, err => {
+      if (err) {
+        return reject(err)
+      }
+      resolve()
+    })
+  })
+}
+
+function symlink(originPath, destPath) {
+  return new Promise((resolve, reject) => {
+    fs.symlink(originPath, destPath, err => {
       if (err) {
         return reject(err)
       }
