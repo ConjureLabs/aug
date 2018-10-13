@@ -1,6 +1,6 @@
 # aug
 
-`aug` augments a project. It layers files from one directory onto another.
+`aug` augments a project. It merges a base project with overrides.
 
 ```
 $ aug --help
