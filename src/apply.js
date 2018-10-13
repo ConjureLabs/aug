@@ -45,7 +45,7 @@ class Tree {
 
 class TerminalResource {
   constructor(props) {
-    this.props = props
+    Object.assign(this, props)
   }
 }
 
@@ -105,11 +105,11 @@ async function walk(src, apply) {
 }
 
 async function generateDest(tree, dest) {
-  for (const resource of tree) {
+  for (const resource in tree) {
     const node = tree[resource]
     const destPath = path.resolve(dest, resource)
 
-    if (!node instanceof TerminalResource) {
+    if (!(node instanceof TerminalResource)) {
       generateDest(node, destPath)
       continue
     }
