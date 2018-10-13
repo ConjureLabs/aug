@@ -1,5 +1,6 @@
 const fs = require('fs')
 const path = require('path')
+const ignore = require('ignore')
 
 let dryRun = false
 
@@ -21,7 +22,7 @@ class Project {
   async augment() {
     const tree = new Tree(this.src, this.apply)
     await tree.build()
-    await generateDest(tree, this.dest)
+    // await generateDest(tree, this.dest)
   }
 }
 
@@ -39,7 +40,15 @@ class Tree {
   }
 
   async build() {
-    Object.assign(this, await walk(this.src, this.apply))
+    Object.assign(this, await walk({
+      root: this.src,
+      path: this.src,
+      ignore: ignore()
+    }, {
+      root: this.apply,
+      path: this.apply,
+      ignore: ignore()
+    }))
   }
 }
 
@@ -49,11 +58,11 @@ class TerminalResource {
   }
 }
 
-const emptyDirState = Object.freeze({ list: Object.freeze([]), stats: Object.freeze({}), path: null })
+const emptyDirState = Object.freeze({ list: Object.freeze([]), stats: Object.freeze({}), root: null, path: null, ignore: null })
 async function walk(src, apply) {
   const origin = {
-    src: src ? await dir(src) : emptyDirState,
-    apply: apply ? await dir(apply) : emptyDirState
+    src: src ? await dir(src.path, src.root, src.ignore) : emptyDirState,
+    apply: apply ? await dir(apply.path, apply.root, apply.ignore) : emptyDirState
   }
 
   // full array of resource names
@@ -95,10 +104,15 @@ async function walk(src, apply) {
     }
 
     // walk deeper
-    result[resource] = await walk(
-      srcHasResourceDir ? path.resolve(src, resource) : null,
-      path.resolve(apply, resource)
-    )
+    result[resource] = await walk({
+      path: srcHasResourceDir ? path.resolve(src.path, resource) : null,
+      root: src.root,
+      ignore: src.ignore
+    }, {
+      path: path.resolve(apply.path, resource),
+      root: apply.root,
+      ignore: apply.ignore
+    })
   }
 
   return result
@@ -123,10 +137,10 @@ async function generateDest(tree, dest) {
   }
 }
 
-function dir(path) {
+function dir(dirPath, dirRoot, ignore) {
   return new Promise((resolve, reject) => {
     // would like to use withFileTypes but it's not avail until node v10.10.0
-    fs.readdir(path, {
+    fs.readdir(dirPath, {
       encoding: 'utf8',
       withFileTypes: true
     }, async (err, list) => {
@@ -136,9 +150,30 @@ function dir(path) {
 
       // get all file stats
       // { 'config.yml': <fs.Stats> }
-      const eachResult = await Promise.all(list.map(resource => stat(path, resource)))
+      const eachResult = await Promise.all(list.map(resource => stat(dirPath, resource)))
+
+      const ignoreIndex = list.indexOf('.augignore')
+      if (ignoreIndex > -1) {
+        let relativePath = path.relative(dirRoot, dirPath)
+        relativePath += relativePath.length ? '/' : ''
+
+        const ignoreContent = (await readFile(path.resolve(dirPath, '.augignore')))
+          .split('\n')
+          .reduce((lines, current) => {
+            if (/^\s*$/.test(current) || /^\s*#/.test(current)) {
+              return lines
+            }
+
+            lines.push(relativePath + current)
+            return lines 
+          }, [])
+
+        ignore.add(ignoreContent)
+        list.splice(ignoreIndex, 1)
+      }
+
       resolve({
-        path,
+        path: dirPath,
         list,
         // return flattened object
         stats: Object.assign({}, ...eachResult)
@@ -157,6 +192,17 @@ function stat(resourceDir, resource) {
       resolve({
         [resource]: stats
       })
+    })
+  })
+}
+
+function readFile(path) {
+  return new Promise((resolve, reject) => {
+    fs.readFile(path, 'utf8', (err, content) => {
+      if (err) {
+        return reject(err)
+      }
+      resolve(content)
     })
   })
 }

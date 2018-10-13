@@ -45,6 +45,7 @@
     "chalk": "^2.4.1",
     "copy-webpack-plugin": "^4.5.2",
     "epipebomb": "^1.0.0",
+    "ignore": "^5.0.2",
     "mkdirp": "^0.5.1",
     "pkg": "^4.3.4",
     "webpack": "^4.19.0",
