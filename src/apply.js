@@ -135,17 +135,23 @@ async function generateDest(tree, dest) {
     const destPath = path.resolve(dest, resource)
 
     if (!(node instanceof TerminalResource)) {
-      await mkdir(destPath) // todo: ensure same mode used
+      if (!dryRun) {
+        await mkdir(destPath) // todo: ensure same mode used
+      }
       generateDest(node, destPath)
       continue
     }
 
-    console.log(`${logPrefixes[node.origin]} --> ${destPath}`)
+    const isSymbolicLink = node.stats.isSymbolicLink()
+    const isDirectory = !isSymbolicLink && node.stats.isDirectory()
+
+    console.log(`${logPrefixes[node.origin]} --> ${destPath}${isDirectory ? '/' + helpers.underline('*') : ''}`)
+
     if (dryRun) {
       continue
     }
 
-    if (node.stats.isSymbolicLink()) {
+    if (isSymbolicLink) {
       await copy(node.path, destPath)
       continue
     }
