@@ -22,7 +22,7 @@ class Project {
   async augment() {
     const tree = new Tree(this.src, this.apply)
     await tree.build()
-    // await generateDest(tree, this.dest)
+    await generateDest(tree, this.dest)
   }
 }
 
@@ -148,15 +148,15 @@ function dir(dirPath, dirRoot, ignore) {
         return reject(err)
       }
 
+      let relativePath = path.relative(dirRoot, dirPath)
+      relativePath += relativePath.length ? '/' : ''
+
       // get all file stats
       // { 'config.yml': <fs.Stats> }
       const eachResult = await Promise.all(list.map(resource => stat(dirPath, resource)))
 
       const ignoreIndex = list.indexOf('.augignore')
       if (ignoreIndex > -1) {
-        let relativePath = path.relative(dirRoot, dirPath)
-        relativePath += relativePath.length ? '/' : ''
-
         const ignoreContent = (await readFile(path.resolve(dirPath, '.augignore')))
           .split('\n')
           .reduce((lines, current) => {
@@ -171,6 +171,8 @@ function dir(dirPath, dirRoot, ignore) {
         ignore.add(ignoreContent)
         list.splice(ignoreIndex, 1)
       }
+
+      list = list.filter(resource => !ignore.ignores(relativePath + resource))
 
       resolve({
         path: dirPath,
