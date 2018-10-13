@@ -135,6 +135,7 @@ async function generateDest(tree, dest) {
     const destPath = path.resolve(dest, resource)
 
     if (!(node instanceof TerminalResource)) {
+      await mkdir(destPath) // todo: ensure same mode used
       generateDest(node, destPath)
       continue
     }
@@ -239,6 +240,17 @@ function copy(originPath, destPath) {
 function symlink(originPath, destPath) {
   return new Promise((resolve, reject) => {
     fs.symlink(originPath, destPath, err => {
+      if (err) {
+        return reject(err)
+      }
+      resolve()
+    })
+  })
+}
+
+function mkdir(path) {
+  return new Promise((resolve, reject) => {
+    fs.mkdir(path, err => {
       if (err) {
         return reject(err)
       }
