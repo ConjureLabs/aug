@@ -51,7 +51,7 @@ function aug() {
   // "aug" or "aug --help" will output base helper text
   const commandRaw = userConfig.command === null && !userConfig.flags.help ? 'apply' : userConfig.command
   // sanitizing user command to avoid requiring in files like config.default.json
-  const commandUsed = commandRaw.replace(/[^a-z]*/i, '').toLowerCase()
+  const commandUsed = (commandRaw || 'help').replace(/[^a-z]*/i, '').toLowerCase()
   let commandHandler
   let commandFlagShorthands
   let commandFlagHasValue
