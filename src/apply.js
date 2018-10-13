@@ -1,8 +1,13 @@
 const fs = require('fs')
 const path = require('path')
 
+let dryRun = false
+
 // --help/-h is ignored since this handler defaults to helper text
 module.exports.handler = async userConfig => {
+  if (userConfig.flags['dry-run']) {
+    dryRun = true
+  }
   await new Project(userConfig).augment()
 }
 
@@ -76,7 +81,7 @@ async function walk(src, apply) {
     // if a non-directory,
     // or from src dir,
     // then it's terminal
-    if (originUsed === 'src' || !stat.isDirectory()) {
+    if (originUsed === 'src' || !stats.isDirectory()) {
       result[resource] = new TerminalResource(resourceProps)
       continue
     }
@@ -157,7 +162,19 @@ function stat(resourceDir, resource) {
   })
 }
 
+function emptyPromise() {
+  return new Promise(resolve => {
+    resolve()
+  })
+}
+
 function copy(originPath, destPath) {
+  console.log(`--> ${destPath}`)
+
+  if (dryRun) {
+    return emptyPromise()
+  }
+
   return new Promise((resolve, reject) => {
     fs.copyFile(originPath, destPath, fs.constants.COPYFILE_EXCL, err => {
       if (err) {
@@ -169,6 +186,12 @@ function copy(originPath, destPath) {
 }
 
 function symlink(originPath, destPath) {
+  console.log(`--> ${destPath}`)
+
+  if (dryRun) {
+    return emptyPromise()
+  }
+
   return new Promise((resolve, reject) => {
     fs.symlink(originPath, destPath, err => {
       if (err) {
