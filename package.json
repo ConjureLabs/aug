@@ -40,6 +40,7 @@
     "@babel/preset-env": "7.1.0",
     "@babel/runtime": "7.1.2",
     "@conjurelabs/utils": "^0.1.0",
+    "acorn": "6.4.1",
     "babel-eslint": "10.0.1",
     "babel-loader": "8.0.4",
     "chalk": "2.4.1",
@@ -48,10 +49,11 @@
     "epipebomb": "1.0.0",
     "ignore": "5.0.2",
     "lodash": ">=4.17.13",
+    "minimist": "1.2.5",
     "mixin-deep": "^2.0.1",
     "pkg": "4.3.4",
     "set-value": "^3.0.1",
-    "webpack": "4.20.2",
+    "webpack": "4.42.0",
     "webpack-node-externals": "1.7.2"
   },
   "devDependencies": {
