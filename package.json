@@ -53,7 +53,7 @@
     "mixin-deep": "^2.0.1",
     "pkg": "4.5.1",
     "set-value": "^4.0.1",
-    "webpack": "5.75.0",
+    "webpack": "5.76.0",
     "webpack-node-externals": "1.7.2"
   },
   "devDependencies": {
